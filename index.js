@@ -71,6 +71,48 @@ const run = async () => {
       }
     });
     //
+    app.get("/product-count", async (req, res) => {
+      const count = await productCollection.estimatedDocumentCount();
+      res.send({ count });
+    });
+    app.post("/products", async (req, res) => {
+      const page = Number(req.query?.page);
+      const item = Number(req.query?.item);
+      //
+      const search = req.query?.search;
+      const category = req.query?.category;
+      const sort = req.query?.sort;
+      const sortObject = {};
+      if (category) {
+        sortObject[category] = 1;
+      }
+      if (sort === "new") {
+        sortObject.creation_date - 1;
+      } else if (sort === "low") {
+        sortObject.price = 1;
+      } else if (sort === "high") {
+        sortObject.price = -1;
+      } else {
+        sortObject.category = 1;
+      }
+      if (!search == " ") {
+        const result = await productCollection
+          .find({ name: { $regex: search } })
+          .sort(sortObject)
+          .skip(page * item)
+          .limit(item)
+          .toArray();
+        res.send(result);
+        return;
+      }
+      const result = await productCollection
+        .find()
+        .sort(sortObject)
+        .skip(page * item)
+        .limit(item)
+        .toArray();
+      res.send(result);
+    });
   } finally {
     // console.log('')
   }
