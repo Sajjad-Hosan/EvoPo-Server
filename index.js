@@ -8,8 +8,13 @@ const app = express();
 const port = 3000 || process.env.PORT;
 const uri = `mongodb://localhost:27017`;
 
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 app.use(express.json());
-app.use(cors());
 app.use(cookieParser());
 
 const client = new MongoClient(uri, {
@@ -20,14 +25,31 @@ const client = new MongoClient(uri, {
   },
 });
 
+const cookieOption = {
+  httpOnly: true,
+  secure: process.env.EXP_ENV === "production" ? true : false,
+  sameSite: process.env.EXP_ENV === "production" ? "none" : "strict",
+};
+
 const run = async () => {
   try {
+
+
+    //
     const userCollection = client.db("ecopoShop").collection("users");
     const productCollection = client.db("ecopoShop").collection("products");
     const orderCollection = client.db("ecopoShop").collection("orders");
     const paymentCollection = client.db("ecopoShop").collection("payments");
+    // create token
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.SECRET_TOKEN, {
+        expiresIn: "1d",
+      });
+      res.cookie("token", token, cookieOption).send({ message: "success" });
+    });
     //
-    app.post("/add-user", async (req, res) => {
+    app.post("/add-user", verifyToken, async (req, res) => {
       const user = req.body;
       const exist = await userCollection.findOne({ email: user?.email });
       if (exist) {
@@ -36,10 +58,9 @@ const run = async () => {
       const userAdd = await userCollection.insertOne(user);
       res.send({ message: "success", userAdd });
     });
-    app.patch("/update", async (req, res) => {
+    app.patch("/update", verifyToken, async (req, res) => {
       const user = req.body;
       const type = req.query.type;
-      console.log(user);
       const exist = await userCollection.findOne({ email: user?.email });
       if (exist) {
         if (type === "logout") {
@@ -53,7 +74,9 @@ const run = async () => {
             { email: user?.email },
             update
           );
-          return res.send({ message: "success", result });
+          return res
+            .clearCookie("token", { ...cookieOption, maxAge: 0 })
+            .send({ message: "success", result });
         } else if (type === "login") {
           const update = {
             $set: {
@@ -75,7 +98,7 @@ const run = async () => {
       const count = await productCollection.estimatedDocumentCount();
       res.send({ count });
     });
-    app.post("/products", async (req, res) => {
+    app.post("/products", verifyToken, async (req, res) => {
       const page = Number(req.query?.page);
       const item = Number(req.query?.item);
       //
@@ -113,9 +136,8 @@ const run = async () => {
         .toArray();
       res.send(result);
     });
-    app.get("/product/:id", async (req, res) => {
+    app.get("/product/:id", verifyToken, async (req, res) => {
       const filter = { _id: new ObjectId(req.params.id) };
-      console.log(filter);
       const result = await productCollection.findOne(filter);
       res.send(result);
     });
