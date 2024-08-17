@@ -36,7 +36,41 @@ const run = async () => {
       const userAdd = await userCollection.insertOne(user);
       res.send({ message: "success", userAdd });
     });
-
+    app.patch("/update", async (req, res) => {
+      const user = req.body;
+      const type = req.query.type;
+      console.log(user);
+      const exist = await userCollection.findOne({ email: user?.email });
+      if (exist) {
+        if (type === "logout") {
+          const update = {
+            $set: {
+              logoutTime: user?.logoutTime,
+              logoutDate: user?.logoutDate,
+            },
+          };
+          const result = await userCollection.updateOne(
+            { email: user?.email },
+            update
+          );
+          return res.send({ message: "success", result });
+        } else if (type === "login") {
+          const update = {
+            $set: {
+              loginTime: user?.loginTime,
+              LoginDate: user?.LoginDate,
+            },
+          };
+          const result = await userCollection.updateOne(
+            { email: user?.email },
+            update
+          );
+          return res.send({ message: "success", result });
+        }
+        return res.send({ message: "error" });
+      }
+    });
+    //
   } finally {
     // console.log('')
   }
