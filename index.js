@@ -113,6 +113,12 @@ const run = async () => {
         .toArray();
       res.send(result);
     });
+    app.get("/product/:id", async (req, res) => {
+      const filter = { _id: new ObjectId(req.params.id) };
+      console.log(filter);
+      const result = await productCollection.findOne(filter);
+      res.send(result);
+    });
   } finally {
     // console.log('')
   }
