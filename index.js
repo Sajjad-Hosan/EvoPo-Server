@@ -5,12 +5,17 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
-const port = 3000 || process.env.PORT;
-const uri = `mongodb://localhost:27017`;
+const port = process.env.PORT || 3000;
+// const uri = `mongodb://localhost:27017`;
+const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASS}@cluster0.aeratuu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://ecopo-shop.web.app",
+      "https://ecopo-shop.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
@@ -38,11 +43,11 @@ const run = async () => {
       if (!token) {
         return res.status(401).send({ message: "unAuthorize access" });
       }
-      jwt.verify(token, process.env.SECRET_TOKEN, (error, deoded) => {
+      jwt.verify(token, process.env.SECRET_TOKEN, (error, dcoded) => {
         if (error) {
           return res.status(401).send({ message: "unAuthorize accese" });
         }
-        req.user = deoded;
+        req.user = dcoded;
         nxt();
       });
     };
@@ -61,7 +66,7 @@ const run = async () => {
       res.cookie("token", token, cookieOption).send({ message: "success" });
     });
     //
-    app.post("/add-user", verifyToken, async (req, res) => {
+    app.post("/add-user", async (req, res) => {
       const user = req.body;
       const exist = await userCollection.findOne({ email: user?.email });
       if (exist) {
@@ -110,7 +115,7 @@ const run = async () => {
       const count = await productCollection.estimatedDocumentCount();
       res.send({ count });
     });
-    app.post("/products", verifyToken, async (req, res) => {
+    app.post("/products", async (req, res) => {
       const page = Number(req.query?.page);
       const item = Number(req.query?.item);
       //
