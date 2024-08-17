@@ -33,7 +33,19 @@ const cookieOption = {
 
 const run = async () => {
   try {
-
+    const verifyToken = (req, res, nxt) => {
+      const token = req.cookies?.token;
+      if (!token) {
+        return res.status(401).send({ message: "unAuthorize access" });
+      }
+      jwt.verify(token, process.env.SECRET_TOKEN, (error, deoded) => {
+        if (error) {
+          return res.status(401).send({ message: "unAuthorize accese" });
+        }
+        req.user = deoded;
+        nxt();
+      });
+    };
 
     //
     const userCollection = client.db("ecopoShop").collection("users");
