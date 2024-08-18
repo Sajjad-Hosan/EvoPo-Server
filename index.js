@@ -162,22 +162,46 @@ const run = async () => {
     //
     app.post("/favorite-add", async (req, res) => {
       const product = req.body;
-      const exist = await FavoriteCollection.findOne({ name: product?.name });
+      console.log(product);
+      const exist = await FavoriteCollection.findOne({
+        "item.name": product.item?.name,
+      });
+      const filter = { _id: new ObjectId(product.favo_id) };
       if (exist) {
         return res.send({ message: "product already exist" });
       }
+      const update = {
+        $set: {
+          favorite: product?.favorite,
+        },
+      };
+      const updateRes = await productCollection.updateOne(filter, update);
       const result = await FavoriteCollection.insertOne(product);
-      res.send(result);
+      return res.send(result);
     });
     app.post("/favorites", async (req, res) => {
       const email = req.query?.user;
       const page = Number(req.query?.page);
       const item = Number(req.query?.item);
       //
+      const count = await FavoriteCollection.estimatedDocumentCount();
       const result = await FavoriteCollection.find({ email: email })
         .skip(page * item)
         .limit(item)
         .toArray();
+      res.send({ result, count });
+    });
+    app.delete("/favorite-delete", async (req, res) => {
+      const filter = { _id: new ObjectId(req.query.id) };
+      const filter2 = { _id: new ObjectId(req.query.productId) };
+      //
+      const update = {
+        $set: {
+          favorite: false,
+        },
+      };
+      const updateRes = await productCollection.updateOne(filter2, update);
+      const result = await FavoriteCollection.deleteOne(filter);
       res.send(result);
     });
   } finally {
