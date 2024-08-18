@@ -169,17 +169,17 @@ const run = async () => {
       const result = await FavoriteCollection.insertOne(product);
       res.send(result);
     });
-    // app.post("/favorites", async (req, res) => {
-    //   const email = req.query?.user;
-    //   const page = Number(req.query?.page);
-    //   const item = Number(req.query?.item);
-    //   //
-    //   const result = await FavoriteCollection.find({ email: email })
-    //     .skip(page * item)
-    //     .limit(item)
-    //     .toArray();
-    //   res.send(result);
-    // });
+    app.post("/favorites", async (req, res) => {
+      const email = req.query?.user;
+      const page = Number(req.query?.page);
+      const item = Number(req.query?.item);
+      //
+      const result = await FavoriteCollection.find({ email: email })
+        .skip(page * item)
+        .limit(item)
+        .toArray();
+      res.send(result);
+    });
   } finally {
     // console.log('')
   }
