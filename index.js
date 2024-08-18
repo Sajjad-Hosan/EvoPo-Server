@@ -57,6 +57,7 @@ const run = async () => {
     const productCollection = client.db("ecopoShop").collection("products");
     const orderCollection = client.db("ecopoShop").collection("orders");
     const paymentCollection = client.db("ecopoShop").collection("payments");
+    const FavoriteCollection = client.db("ecopoShop").collection("favorites");
     // create token
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -158,6 +159,27 @@ const run = async () => {
       const result = await productCollection.findOne(filter);
       res.send(result);
     });
+    //
+    app.post("/favorite-add", async (req, res) => {
+      const product = req.body;
+      const exist = await FavoriteCollection.findOne({ name: product?.name });
+      if (exist) {
+        return res.send({ message: "product already exist" });
+      }
+      const result = await FavoriteCollection.insertOne(product);
+      res.send(result);
+    });
+    // app.post("/favorites", async (req, res) => {
+    //   const email = req.query?.user;
+    //   const page = Number(req.query?.page);
+    //   const item = Number(req.query?.item);
+    //   //
+    //   const result = await FavoriteCollection.find({ email: email })
+    //     .skip(page * item)
+    //     .limit(item)
+    //     .toArray();
+    //   res.send(result);
+    // });
   } finally {
     // console.log('')
   }
