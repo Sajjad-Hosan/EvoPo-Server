@@ -222,19 +222,18 @@ const run = async () => {
       res.send(result);
       console.log(resultUp);
     });
-    app.patch("/cart-remove", async (req, res) => {
-      const cart = req.body;
-      const filter = { _id: new ObjectId(cart._id) };
-      const filter2 = { _id: new ObjectId(cart?.pro_id) };
+    app.delete("/cart-remove/:id", async (req, res) => {
+      const filter = { _id: new ObjectId(req.params?.id) };
+      const filter2 = { product_id: req.params?.id };
+      console.log(req.params);
       const update = {
         $set: {
           cart: false,
         },
       };
-      const updateRes = await productCollection.updateOne(filter2, update);
-      // const result = await CartCollection.deleteOne(filter);
-      res.send(updateRes);
-      console.log(cart);
+      const updateRes = await productCollection.updateOne(filter, update);
+      const result = await CartCollection.deleteOne(filter2);
+      res.send({result,update: updateRes});
     });
     app.post("/carts", async (req, res) => {
       const email = req.query?.email;
@@ -243,8 +242,8 @@ const run = async () => {
       //
       const count = await CartCollection.estimatedDocumentCount();
       const result = await CartCollection.find({ customer_email: email })
-      .skip(page * limit)
-      .limit(limit)
+        .skip(page * limit)
+        .limit(limit)
         .toArray();
 
       res.send({ result, count });
