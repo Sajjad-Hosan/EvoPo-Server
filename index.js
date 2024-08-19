@@ -207,14 +207,14 @@ const run = async () => {
     // cart api
     app.post("/cart-add", async (req, res) => {
       const cart = req.body;
-      const filter = { _id: new ObjectId(cart.product._id) };
-      const exist = await CartCollection.findOne({ name: cart.product.name });
+      const filter = { _id: new ObjectId(cart.product_id) };
+      const exist = await CartCollection.findOne({ name: cart.name });
       if (exist) {
         return res.send({ message: "product already exist" });
       }
       const update = {
         $set: {
-          cart: cart.product.cart,
+          cart: cart.cart,
         },
       };
       const resultUp = await productCollection.updateOne(filter, update);
@@ -222,14 +222,29 @@ const run = async () => {
       res.send(result);
       console.log(resultUp);
     });
+    app.patch("/cart-remove", async (req, res) => {
+      const cart = req.body;
+      const filter = { _id: new ObjectId(cart._id) };
+      const filter2 = { _id: new ObjectId(cart?.pro_id) };
+      const update = {
+        $set: {
+          cart: false,
+        },
+      };
+      const updateRes = await productCollection.updateOne(filter2, update);
+      // const result = await CartCollection.deleteOne(filter);
+      res.send(updateRes);
+      console.log(cart);
+    });
     app.post("/carts", async (req, res) => {
+      const email = req.query?.email;
       const page = Number(req.query.page);
-      const limit = Number(req.query.limit);
+      const limit = Number(req.query.item);
       //
       const count = await CartCollection.estimatedDocumentCount();
-      const result = await CartCollection.find({ customerEmail: email })
-        .limit(limit)
-        .skip(page * limit)
+      const result = await CartCollection.find({ customer_email: email })
+      .skip(page * limit)
+      .limit(limit)
         .toArray();
 
       res.send({ result, count });
