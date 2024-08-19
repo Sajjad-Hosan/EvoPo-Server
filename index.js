@@ -220,20 +220,6 @@ const run = async () => {
       const resultUp = await productCollection.updateOne(filter, update);
       const result = await CartCollection.insertOne(cart);
       res.send(result);
-      console.log(resultUp);
-    });
-    app.delete("/cart-remove/:id", async (req, res) => {
-      const filter = { _id: new ObjectId(req.params?.id) };
-      const filter2 = { product_id: req.params?.id };
-      console.log(req.params);
-      const update = {
-        $set: {
-          cart: false,
-        },
-      };
-      const updateRes = await productCollection.updateOne(filter, update);
-      const result = await CartCollection.deleteOne(filter2);
-      res.send({result,update: updateRes});
     });
     app.post("/carts", async (req, res) => {
       const email = req.query?.email;
@@ -247,6 +233,18 @@ const run = async () => {
         .toArray();
 
       res.send({ result, count });
+    });
+    app.delete("/cart-remove/:id", async (req, res) => {
+      const filter = { _id: new ObjectId(req.params?.id) };
+      const filter2 = { product_id: req.params?.id };
+      const update = {
+        $set: {
+          cart: false,
+        },
+      };
+      const updateRes = await productCollection.updateOne(filter, update);
+      const result = await CartCollection.deleteOne(filter2);
+      res.send({ result, update: updateRes });
     });
   } finally {
     // console.log('')
