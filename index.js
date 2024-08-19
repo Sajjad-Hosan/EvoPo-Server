@@ -56,7 +56,7 @@ const run = async () => {
     const userCollection = client.db("ecopoShop").collection("users");
     const productCollection = client.db("ecopoShop").collection("products");
     const orderCollection = client.db("ecopoShop").collection("orders");
-    const paymentCollection = client.db("ecopoShop").collection("payments");
+    const CartCollection = client.db("ecopoShop").collection("carts");
     const FavoriteCollection = client.db("ecopoShop").collection("favorites");
     // create token
     app.post("/jwt", async (req, res) => {
@@ -203,6 +203,36 @@ const run = async () => {
       const updateRes = await productCollection.updateOne(filter2, update);
       const result = await FavoriteCollection.deleteOne(filter);
       res.send(result);
+    });
+    // cart api
+    app.post("/cart-add", async (req, res) => {
+      const cart = req.body;
+      const filter = { _id: new ObjectId(cart.product._id) };
+      const exist = await CartCollection.findOne({ name: cart.product.name });
+      if (exist) {
+        return res.send({ message: "product already exist" });
+      }
+      const update = {
+        $set: {
+          cart: cart.product.cart,
+        },
+      };
+      const resultUp = await productCollection.updateOne(filter, update);
+      const result = await CartCollection.insertOne(cart);
+      res.send(result);
+      console.log(resultUp);
+    });
+    app.post("/carts", async (req, res) => {
+      const page = Number(req.query.page);
+      const limit = Number(req.query.limit);
+      //
+      const count = await CartCollection.estimatedDocumentCount();
+      const result = await CartCollection.find({ customerEmail: email })
+        .limit(limit)
+        .skip(page * limit)
+        .toArray();
+
+      res.send({ result, count });
     });
   } finally {
     // console.log('')
