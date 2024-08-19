@@ -160,7 +160,7 @@ const run = async () => {
       res.send(result);
     });
     //
-    app.post("/favorite-add", async (req, res) => {
+    app.post("/favorite-add", verifyToken, async (req, res) => {
       const product = req.body;
       console.log(product);
       const exist = await FavoriteCollection.findOne({
@@ -179,7 +179,7 @@ const run = async () => {
       const result = await FavoriteCollection.insertOne(product);
       return res.send(result);
     });
-    app.post("/favorites", async (req, res) => {
+    app.post("/favorites", verifyToken, async (req, res) => {
       const email = req.query?.user;
       const page = Number(req.query?.page);
       const item = Number(req.query?.item);
@@ -191,7 +191,7 @@ const run = async () => {
         .toArray();
       res.send({ result, count });
     });
-    app.delete("/favorite-delete", async (req, res) => {
+    app.delete("/favorite-delete", verifyToken, async (req, res) => {
       const filter = { _id: new ObjectId(req.query.id) };
       const filter2 = { _id: new ObjectId(req.query.productId) };
       //
@@ -205,7 +205,7 @@ const run = async () => {
       res.send(result);
     });
     // cart api
-    app.post("/cart-add", async (req, res) => {
+    app.post("/cart-add", verifyToken, async (req, res) => {
       const cart = req.body;
       const filter = { _id: new ObjectId(cart.product_id) };
       const exist = await CartCollection.findOne({ name: cart.name });
@@ -221,7 +221,7 @@ const run = async () => {
       const result = await CartCollection.insertOne(cart);
       res.send(result);
     });
-    app.post("/carts", async (req, res) => {
+    app.post("/carts", verifyToken, async (req, res) => {
       const email = req.query?.email;
       const page = Number(req.query.page);
       const limit = Number(req.query.item);
@@ -234,7 +234,7 @@ const run = async () => {
 
       res.send({ result, count });
     });
-    app.delete("/cart-remove/:id", async (req, res) => {
+    app.delete("/cart-remove/:id", verifyToken, async (req, res) => {
       const filter = { _id: new ObjectId(req.params?.id) };
       const filter2 = { product_id: req.params?.id };
       const update = {
